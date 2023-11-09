@@ -20,6 +20,7 @@ import (
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log/level"
+	"github.com/prometheus-community/systemd_exporter/networkd"
 	"github.com/prometheus-community/systemd_exporter/systemd"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -70,6 +71,17 @@ func main() {
 
 	if err := r.Register(collector); err != nil {
 		level.Error(logger).Log("msg", "Couldn't register systemd collector", "err", err)
+		os.Exit(1)
+	}
+
+	networkdCollector, err := networkd.NewCollector(logger)
+	if err != nil {
+		level.Error(logger).Log("msg", "Couldn't create networkd collector", "err", err)
+		os.Exit(1)
+	}
+
+	if err := r.Register(networkdCollector); err != nil {
+		level.Error(logger).Log("msg", "Couldn't register networkd collector", "err", err)
 		os.Exit(1)
 	}
 
